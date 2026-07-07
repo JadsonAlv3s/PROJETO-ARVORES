@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Categorias — Apresentação</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        html,body{height:100%;overflow:hidden}
+        body{
+            font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+            background:#0d1117;color:#e6edf3;
+            -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale
+        }
+        .slides-container{width:100vw;height:100vh;position:relative;overflow:hidden}
+        .slide{
+            position:absolute;inset:0;
+            display:flex;flex-direction:column;justify-content:center;align-items:center;
+            padding:clamp(24px,5vw,64px) clamp(20px,4vw,80px);
+            opacity:0;transform:translateX(40px);
+            transition:opacity .45s cubic-bezier(.4,0,.2,1),transform .45s cubic-bezier(.4,0,.2,1);
+            pointer-events:none;will-change:transform,opacity
+        }
+        .slide.active{opacity:1;transform:translateX(0);pointer-events:all}
+        .slide.exit-left{opacity:0;transform:translateX(-40px)}
+        .slide-content{max-width:1120px;width:100%;text-align:center;max-height:100%;overflow-y:auto;padding:8px 0}
+        .slide-content::-webkit-scrollbar{width:4px}
+        .slide-content::-webkit-scrollbar-thumb{background:rgba(233,69,96,.4);border-radius:4px}
+        .slide-number{
+            position:fixed;bottom:76px;right:24px;
+            font-size:13px;color:rgba(255,255,255,.25);font-weight:300;z-index:50;
+            font-variant-numeric:tabular-nums
+        }
+        h1{
+            font-size:clamp(1.8rem,4.5vw,3.5rem);font-weight:800;line-height:1.15;
+            background:linear-gradient(135deg,#e94560 0%,#4fc3f7 100%);
+            -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+            background-clip:text;margin-bottom:.5em
+        }
+        h2{
+            font-size:clamp(1.4rem,3vw,2.4rem);font-weight:700;
+            color:#e94560;margin-bottom:.6em;line-height:1.2
+        }
+        .subtitle{
+            font-size:clamp(1rem,1.6vw,1.25rem);color:rgba(255,255,255,.65);
+            margin-bottom:clamp(16px,3vh,36px);font-weight:300
+        }
+        .highlight{color:#e94560;font-weight:600}
+        .highlight-blue{color:#4fc3f7;font-weight:600}
+        .grid-2,.grid-3{
+            display:grid;gap:clamp(12px,2vw,24px);text-align:left;margin-top:12px
+        }
+        .grid-2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+        .grid-3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+        .card{
+            background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+            border-radius:14px;padding:clamp(16px,2.5vw,28px);
+            transition:transform .25s,box-shadow .25s;will-change:transform
+        }
+        .card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(233,69,96,.15)}
+        .card h4{color:#e94560;font-size:1.05em;margin-bottom:12px}
+        .card p,.card li{color:rgba(255,255,255,.78);font-size:.92em;line-height:1.6}
+        .card ul{list-style:none;padding:0}
+        .card ul li{padding:4px 0 4px 18px;position:relative}
+        .card ul li::before{content:"▸";position:absolute;left:0;color:#e94560}
+        .code-block{
+            background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.08);
+            border-radius:10px;padding:clamp(12px,2vw,20px) clamp(14px,2vw,24px);
+            text-align:left;
+            font-family:'Cascadia Code','Fira Code','JetBrains Mono','Consolas',monospace;
+            font-size:clamp(.65rem,.85vw,.82rem);line-height:1.6;
+            overflow-x:auto;overflow-y:auto;max-height:340px;
+            -webkit-overflow-scrolling:touch;white-space:pre;tab-size:4
+        }
+        .code-block .kw{color:#c792ea}
+        .code-block .ty{color:#82aaff}
+        .code-block .st{color:#c3e88d}
+        .code-block .cm{color:#546e7a;font-style:italic}
+        .code-block .me{color:#ffcb6b}
+        .code-block .nu{color:#f78c6c}
+        .tag{
+            display:inline-block;background:rgba(233,69,96,.15);
+            border:1px solid rgba(233,69,96,.3);padding:3px 11px;border-radius:20px;
+            font-size:.78em;color:#e94560;margin:3px
+        }
+        .tag-blue{background:rgba(79,195,247,.15);border-color:rgba(79,195,247,.3);color:#4fc3f7}
+        .stat-number{font-size:2.2em;font-weight:800;color:#e94560}
+        .tree-viz{display:flex;flex-direction:column;align-items:center;margin:12px 0 0;gap:8px}
+        .tree-node{
+            background:rgba(233,69,96,.18);border:2px solid #e94560;
+            border-radius:8px;padding:6px 18px;font-weight:600;font-size:.85em;white-space:nowrap
+        }
+        .tree-node.root{background:rgba(233,69,96,.28);font-size:1em;padding:10px 26px}
+        .tree-children{display:flex;gap:16px;position:relative;padding-top:16px}
+        .tree-children::before{
+            content:'';position:absolute;top:0;left:50%;width:2px;height:16px;
+            background:rgba(233,69,96,.35)
+        }
+        .tree-child-group{display:flex;flex-direction:column;align-items:center;position:relative}
+        .tree-child-group::before{
+            content:'';position:absolute;top:0;width:100%;height:2px;
+            background:rgba(233,69,96,.35)
+        }
+        .tree-child-group:first-child::before{left:50%;width:50%}
+        .tree-child-group:last-child::before{right:50%;width:50%}
+        .tree-child-group:only-child::before{display:none}
+        .tree-child-group .tree-node{background:rgba(79,195,247,.12);border-color:#4fc3f7}
+        .tree-child-group .tree-children{padding-top:12px}
+        .tree-child-group .tree-children::before{height:12px;top:0}
+        .tree-child-group .tree-child-group::before{top:0}
+        .nav-bar{
+            position:fixed;bottom:0;left:0;right:0;
+            display:flex;justify-content:center;align-items:center;gap:16px;
+            padding:14px 20px;
+            background:rgba(13,17,23,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+            z-index:100;border-top:1px solid rgba(255,255,255,.06)
+        }
+        .nav-btn{
+            background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+            color:#e6edf3;padding:8px 22px;border-radius:8px;cursor:pointer;
+            font-size:13px;font-weight:500;transition:all .25s;font-family:inherit
+        }
+        .nav-btn:hover{background:#e94560;border-color:#e94560;transform:translateY(-1px)}
+        .nav-btn:disabled{opacity:.25;cursor:not-allowed;transform:none}
+        .nav-dots{display:flex;gap:7px}
+        .nav-dot{
+            width:9px;height:9px;border-radius:50%;
+            background:rgba(255,255,255,.18);cursor:pointer;
+            transition:all .3s;border:none;padding:0
+        }
+        .nav-dot.active{background:#e94560;transform:scale(1.35)}
+        .nav-dot:hover{background:rgba(255,255,255,.35)}
+        .progress-bar{
+            position:fixed;top:0;left:0;height:3px;
+            background:linear-gradient(90deg,#e94560,#4fc3f7);
+            transition:width .4s ease;z-index:101;will-change:width
+        }
+        .key-hint{
+            position:fixed;bottom:68px;left:50%;transform:translateX(-50%);
+            font-size:11px;color:rgba(255,255,255,.15);z-index:99;pointer-events:none;
+            white-space:nowrap
+        }
+        .flowchart{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin:12px 0}
+        .flow-step{
+            background:rgba(79,195,247,.12);border:1px solid rgba(79,195,247,.25);
+            border-radius:7px;padding:7px 14px;font-size:.8em;color:#4fc3f7;white-space:nowrap
+        }
+        .flow-arrow{color:rgba(255,255,255,.25);font-size:1.1em}
+        .term-block{
+            background:rgba(0,0,0,.4);padding:10px 14px;border-radius:7px;margin-top:10px;
+            font-family:'Cascadia Code','Fira Code','Consolas',monospace;
+            font-size:.78em;color:#c3e88d;text-align:left;overflow-x:auto;white-space:nowrap
+        }
+        .quote-box{
+            margin-top:clamp(16px,3vh,32px);padding:clamp(14px,2vw,20px);
+            background:rgba(233,69,96,.08);border:1px solid rgba(233,69,96,.25);
+            border-radius:12px
+        }
+        .quote-box p{font-size:clamp(1rem,1.5vw,1.15em);color:#e94560;font-weight:600;line-height:1.4}
+        .animate{opacity:0;transform:translateY(20px);transition:opacity .5s ease,transform .5s ease}
+        .slide.active .animate{opacity:1;transform:translateY(0)}
+        .slide.active .d1{transition-delay:.1s}
+        .slide.active .d2{transition-delay:.25s}
+        .slide.active .d3{transition-delay:.4s}
+        .slide.active .d4{transition-delay:.55s}
+        .slide.active .d5{transition-delay:.7s}
+        @media(max-width:640px){
+            .slide{padding:16px 14px}
+            .grid-2,.grid-3{grid-template-columns:1fr}
+            .code-block{font-size:.6rem;max-height:220px}
+            .tree-node{font-size:.75em;padding:4px 12px}
+            .tree-children{gap:8px}
+            .nav-btn{padding:6px 14px;font-size:12px}
+            .key-hint{display:none}
+        }
+        @media(prefers-reduced-motion:reduce){
+            .slide,.animate,.card,.nav-btn,.progress-bar{transition:none!important;animation:none!important}
+            .animate{opacity:1;transform:none}
+        }
+    </style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+<div class="slides-container">
+
+<!-- SLIDE 1: CAPA -->
+<div class="slide slide-1 active" data-index="0">
+<div class="slide-content">
+<div class="animate d1" style="font-size:clamp(2.5rem,5vw,4rem);margin-bottom:12px">🌳</div>
+<h1 class="animate d2">Gerenciador de Categorias</h1>
+<p class="subtitle animate d3">Estrutura de Dados — <span class="highlight">Árvore N-ária</span></p>
+<p class="animate d4" style="color:rgba(255,255,255,.5);font-size:clamp(.9rem,1.3vw,1.05rem);max-width:680px;margin:0 auto">Aplicação Java Swing para gerenciamento hierárquico de categorias<br>utilizando uma árvore onde cada nó pode ter <span class="highlight">N filhos</span></p>
+<div class="animate d5" style="margin-top:clamp(20px,4vh,36px)">
+<span class="tag">Java</span><span class="tag tag-blue">Swing</span><span class="tag">Árvore N-ária</span><span class="tag tag-blue">NetBeans</span><span class="tag">Estrutura de Dados</span>
+</div>
+<p class="animate d5" style="margin-top:clamp(24px,5vh,44px);color:rgba(255,255,255,.2);font-size:.85em">Pressione <span style="color:#e94560">→</span> para navegar</p>
+</div>
+<div class="slide-number">1 / 8</div>
+</div>
+
+<!-- SLIDE 2: O QUE É UMA ÁRVORE N-ÁRIA -->
+<div class="slide slide-2" data-index="1">
+<div class="slide-content">
+<h2 class="animate d1">🌲 O que é uma Árvore N-ária?</h2>
+<div class="grid-2">
+<div class="card animate d2">
+<h4>📖 Definição</h4>
+<p>Uma <span class="highlight">árvore n-ária</span> é uma estrutura hierárquica onde cada nó pode ter <strong>qualquer número de filhos</strong> (diferente de uma árvore binária que tem no máximo 2).</p><br>
+<p>Ideal para representar:</p>
+<ul><li>📁 Sistemas de arquivos</li><li>🏷️ Categorias de produtos</li><li>🌐 Organogramas</li><li>📋 Menus hierárquicos</li></ul>
+</div>
+<div class="card animate d3">
+<h4>🔧 Operações</h4>
+<ul>
+<li><span class="highlight">Inserir</span> — Adicionar um nó filho</li>
+<li><span class="highlight">Buscar</span> — Localizar um nó pelo nome</li>
+<li><span class="highlight">Remover</span> — Excluir um nó e seus descendentes</li>
+<li><span class="highlight">Renomear</span> — Alterar o nome de um nó</li>
+<li><span class="highlight">Contar</span> — Total de nós na árvore</li>
+<li><span class="highlight">Profundidade</span> — Maior nível hierárquico</li>
+<li><span class="highlight">Exportar</span> — Gerar JSON da estrutura</li>
+</ul>
+</div>
+</div>
+<div class="tree-viz animate d4">
+<div class="tree-node root">🏪 Loja</div>
+<div class="tree-children">
+<div class="tree-child-group"><div class="tree-node">📱 Eletrônicos</div><div class="tree-children"><div class="tree-child-group"><div class="tree-node">📱 Smartphones</div></div><div class="tree-child-group"><div class="tree-node">💻 Notebooks</div></div></div></div>
+<div class="tree-child-group"><div class="tree-node">👕 Roupas</div><div class="tree-children"><div class="tree-child-group"><div class="tree-node">👔 Masculino</div></div><div class="tree-child-group"><div class="tree-node">👗 Feminino</div></div></div></div>
+<div class="tree-child-group"><div class="tree-node">🏠 Casa</div></div>
+</div>
+</div>
+</div>
+<div class="slide-number">2 / 8</div>
+</div>
+
+<!-- SLIDE 3: ESTRUTURA DO PROJETO -->
+<div class="slide slide-3" data-index="2">
+<div class="slide-content">
+<h2 class="animate d1">📁 Estrutura do Projeto</h2>
+<p class="subtitle animate d2">Organização em pacotes no padrão Java + NetBeans</p>
+<div class="grid-3">
+<div class="card animate d2">
+<h4>📦 Categoria.java</h4>
+<p><span class="highlight">O nó da árvore</span></p>
+<ul><li>Atributos: <span class="highlight-blue">nome</span> e <span class="highlight-blue">subcategorias</span></li><li>Métodos: inserir, remover, buscar</li><li>Contagem de nós e profundidade</li><li>Exportação para JSON</li></ul>
+</div>
+<div class="card animate d3">
+<h4>📦 ArvoreCategorias.java</h4>
+<p><span class="highlight">A estrutura completa</span></p>
+<ul><li>Gerencia a raiz "Loja"</li><li>Operações de alto nível</li><li>Validação de duplicatas</li><li>Exemplos pré-carregados</li></ul>
+</div>
+<div class="card animate d4">
+<h4>📦 TelaPrincipal.java</h4>
+<p><span class="highlight">Interface gráfica</span></p>
+<ul><li>Java Swing moderno</li><li>JTree para visualização</li><li>Painel de ações e detalhes</li><li>Busca integrada</li></ul>
+</div>
+</div>
+<div class="code-block animate d5" style="text-align:center;max-height:none;font-size:clamp(.6rem,.8vw,.78rem)">
+<span style="color:#4fc3f7">projeto1/</span>
+<span style="color:#546e7a">├──</span> <span style="color:#c792ea">src/gerenciadorcategorias/</span>
+<span style="color:#546e7a">│   ├──</span> <span style="color:#ffcb6b">Categoria.java</span>
+<span style="color:#546e7a">│   ├──</span> <span style="color:#ffcb6b">ArvoreCategorias.java</span>
+<span style="color:#546e7a">│   └──</span> <span style="color:#ffcb6b">TelaPrincipal.java</span>
+<span style="color:#546e7a">├──</span> <span style="color:#82aaff">nbproject/</span> <span style="color:#546e7a">(config NetBeans)</span>
+<span style="color:#546e7a">├──</span> <span style="color:#82aaff">build/</span> <span style="color:#546e7a">(classes compiladas)</span>
+<span style="color:#546e7a">└──</span> <span style="color:#c3e88d">README.md</span>
+</div>
+</div>
+<div class="slide-number">3 / 8</div>
+</div>
+
+<!-- SLIDE 4: CLASSE CATEGORIA -->
+<div class="slide slide-4" data-index="3">
+<div class="slide-content">
+<h2 class="animate d1">📦 Classe Categoria</h2>
+<p class="subtitle animate d2">O nó fundamental da árvore n-ária</p>
+<div class="grid-2">
+<div class="code-block animate d3" style="font-size:clamp(.58rem,.78vw,.75rem)">
+<span class="cm">// Atributos</span>
+<span class="kw">public class</span> <span class="ty">Categoria</span> {
+    <span class="kw">private</span> <span class="ty">String</span> <span class="me">nome</span>;
+    <span class="kw">private</span> <span class="ty">List</span><<span class="ty">Categoria</span>> <span class="me">subcategorias</span>;
+
+    <span class="cm">// Inserir filho</span>
+    <span class="kw">public void</span> <span class="me">inserirSubcategoria</span>(<span class="ty">Categoria</span> sub) {
+        <span class="kw">this</span>.subcategorias.<span class="me">add</span>(sub);
+    }
+
+    <span class="cm">// Remover filho (recursivo)</span>
+    <span class="kw">public boolean</span> <span class="me">removerSubcategoria</span>(<span class="ty">String</span> nome) {
+        <span class="kw">for</span> (<span class="ty">Categoria</span> sub : subcategorias) {
+            <span class="kw">if</span> (sub.nome.<span class="me">equalsIgnoreCase</span>(nome)) {
+                subcategorias.<span class="me">remove</span>(sub);
+                <span class="kw">return true</span>;
+            }
+            <span class="kw">if</span> (sub.<span class="me">removerSubcategoria</span>(nome))
+                <span class="kw">return true</span>;
+        }
+        <span class="kw">return false</span>;
+    }
+}
+</div>
+<div class="animate d4" style="text-align:left">
+<div class="card" style="margin-bottom:12px">
+<h4>📌 Atributos</h4>
+<ul><li><span class="highlight-blue">nome</span> (String) — Identificador do nó</li><li><span class="highlight-blue">subcategorias</span> (List<Categoria>) — Lista de filhos</li></ul>
+</div>
+<div class="card">
+<h4>🔍 Métodos Principais</h4>
+<ul>
+<li><span class="highlight">inserirSubcategoria()</span> — Adiciona filho</li>
+<li><span class="highlight">removerSubcategoria()</span> — Remove recursivo</li>
+<li><span class="highlight">buscarPorNome()</span> — Busca recursiva</li>
+<li><span class="highlight">contarNos()</span> — Total de descendentes</li>
+<li><span class="highlight">profundidade()</span> — Maior nível</li>
+<li><span class="highlight">toJSON()</span> — Exporta formato JSON</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="slide-number">4 / 8</div>
+</div>
+
+<!-- SLIDE 5: CLASSE ARVORE CATEGORIAS -->
+<div class="slide slide-5" data-index="4">
+<div class="slide-content">
+<h2 class="animate d1">📦 Classe ArvoreCategorias</h2>
+<p class="subtitle animate d2">Gerencia a árvore como um todo</p>
+<div class="grid-2">
+<div class="code-block animate d3" style="font-size:clamp(.55rem,.72vw,.7rem)">
+<span class="kw">public class</span> <span class="ty">ArvoreCategorias</span> {
+    <span class="kw">private</span> <span class="ty">Categoria</span> <span class="me">raiz</span>;
+
+    <span class="kw">public</span> <span class="me">ArvoreCategorias</span>() {
+        <span class="kw">this</span>.raiz = <span class="kw">new</span> <span class="ty">Categoria</span>(<span class="st">"Loja"</span>);
+    }
+
+    <span class="cm">// Inserir no nivel principal</span>
+    <span class="kw">public boolean</span> <span class="me">inserirCategoriaPrincipal</span>(<span class="ty">String</span> nome) {
+        <span class="kw">if</span> (raiz.<span class="me">buscarPorNome</span>(nome) != <span class="kw">null</span>)
+            <span class="kw">return false</span>;
+        raiz.<span class="me">inserirSubcategoria</span>(<span class="kw">new</span> <span class="ty">Categoria</span>(nome));
+        <span class="kw">return true</span>;
+    }
+
+    <span class="cm">// Inserir subcategoria em um pai especifico</span>
+    <span class="kw">public boolean</span> <span class="me">inserirSubcategoria</span>(<span class="ty">String</span> pai, <span class="ty">String</span> nome) {
+        <span class="kw">if</span> (raiz.<span class="me">buscarPorNome</span>(nome) != <span class="kw">null</span>)
+            <span class="kw">return false</span>;
+        <span class="ty">Categoria</span> paiCat = raiz.<span class="me">buscarPorNome</span>(pai);
+        <span class="kw">if</span> (paiCat != <span class="kw">null</span>) {
+            paiCat.<span class="me">inserirSubcategoria</span>(<span class="kw">new</span> <span class="ty">Categoria</span>(nome));
+            <span class="kw">return true</span>;
+        }
+        <span class="kw">return false</span>;
+    }
+
+    <span class="cm">// Remover (nao permite remover a raiz)</span>
+    <span class="kw">public boolean</span> <span class="me">removerCategoria</span>(<span class="ty">String</span> nome) {
+        <span class="kw">if</span> (raiz.<span class="me">getNome</span>().<span class="me">equalsIgnoreCase</span>(nome))
+            <span class="kw">return false</span>;
+        <span class="kw">return</span> raiz.<span class="me">removerSubcategoria</span>(nome);
+    }
+
+    <span class="cm">// Renomear</span>
+    <span class="kw">public boolean</span> <span class="me">renomearCategoria</span>(<span class="ty">String</span> antigo, <span class="ty">String</span> novo) {
+        <span class="kw">if</span> (raiz.<span class="me">buscarPorNome</span>(novo) != <span class="kw">null</span>)
+            <span class="kw">return false</span>;
+        <span class="ty">Categoria</span> cat = raiz.<span class="me">buscarPorNome</span>(antigo);
+        <span class="kw">if</span> (cat != <span class="kw">null</span>) {
+            cat.<span class="me">setNome</span>(novo);
+            <span class="kw">return true</span>;
+        }
+        <span class="kw">return false</span>;
+    }
+}
+</div>
+<div class="animate d4" style="text-align:left">
+<div class="card" style="margin-bottom:12px">
+<h4>📌 Responsabilidades</h4>
+<ul>
+<li>Cria a raiz <span class="highlight">"Loja"</span> no construtor</li>
+<li>Valida duplicatas antes de inserir</li>
+<li>Impede remocao da raiz</li>
+<li>Fornece estatisticas (total, profundidade)</li>
+</ul>
+</div>
+<div class="card">
+<h4>🔍 Fluxo de Insercao</h4>
+<div class="flowchart" style="margin-top:8px">
+<span class="flow-step">1. Validar nome</span>
+<span class="flow-arrow">→</span>
+<span class="flow-step">2. Buscar duplicata</span>
+<span class="flow-arrow">→</span>
+<span class="flow-step">3. Localizar pai</span>
+<span class="flow-arrow">→</span>
+<span class="flow-step">4. Inserir filho</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="slide-number">5 / 8</div>
+</div>
+
+<!-- SLIDE 6: INTERFACE GRAFICA -->
+<div class="slide slide-6" data-index="5">
+<div class="slide-content">
+<h2 class="animate d1">🖥️ Interface Grafica — TelaPrincipal</h2>
+<p class="subtitle animate d2">Java Swing com design moderno e componentes profissionais</p>
+<div class="grid-2">
+<div class="animate d3">
+<div class="card" style="margin-bottom:12px">
+<h4>🎨 Componentes da Tela</h4>
+<ul>
+<li><span class="highlight">TopBar</span> — Titulo + campo de busca</li>
+<li><span class="highlight">JTree</span> — Visualizacao hierarquica da arvore</li>
+<li><span class="highlight">Painel de Acoes</span> — Botoes de operacoes</li>
+<li><span class="highlight">Painel de Detalhes</span> — Info da categoria selecionada</li>
+<li><span class="highlight">Barra de Status</span> — Estatisticas e feedback</li>
+</ul>
+</div>
+<div class="card">
+<h4>🖱️ Interacoes</h4>
+<ul>
+<li>Clique nos botoes para acoes rapidas</li>
+<li><span class="highlight">Clique direito</span> na arvore para menu de contexto</li>
+<li>Selecione um no para ver detalhes</li>
+<li>Busca por nome com selecao automatica</li>
+</ul>
+</div>
+</div>
+<div class="code-block animate d4" style="font-size:clamp(.55rem,.72vw,.7rem)">
+<span class="cm">// Inicializacao da interface</span>
+<span class="kw">private void</span> <span class="me">initUI</span>() {
+    setTitle(<span class="st">"Gerenciador de Categorias"</span>);
+    setSize(1200, 750);
+
+    <span class="cm">// SplitPane: arvore (esq) + acoes (dir)</span>
+    <span class="ty">JSplitPane</span> split = <span class="kw">new</span> <span class="ty">JSplitPane</span>();
+    split.setLeftComponent(<span class="me">criarPainelArvore</span>());
+    split.setRightComponent(<span class="me">criarPainelDireito</span>());
+    add(split);
+}
+
+<span class="cm">// Atualizar arvore visual</span>
+<span class="kw">private void</span> <span class="me">atualizarArvore</span>() {
+    rootNode.<span class="me">removeAllChildren</span>();
+    <span class="me">carregarNosRecursivo</span>(arvore.getRaiz(), rootNode);
+    treeModel.<span class="me">reload</span>();
+    <span class="me">expandirTodos</span>(tree);
+}
+</div>
+</div>
+</div>
+<div class="slide-number">6 / 8</div>
+</div>
+
+<!-- SLIDE 7: DEMONSTRACAO -->
+<div class="slide slide-7" data-index="6">
+<div class="slide-content">
+<h2 class="animate d1">🎬 Demonstracao ao Vivo</h2>
+<p class="subtitle animate d2">Vamos executar a aplicacao e testar as operacoes</p>
+<div class="grid-3">
+<div class="card animate d2">
+<div class="stat-number">01</div>
+<h4 style="margin-top:8px">▶️ Executar</h4>
+<p>Abra no NetBeans e pressione <span class="highlight">F6</span>, ou execute pelo terminal:</p>
+<div class="term-block">java -cp build/classes gerenciadorcategorias.TelaPrincipal</div>
+</div>
+<div class="card animate d3">
+<div class="stat-number">02</div>
+<h4 style="margin-top:8px">🧪 Testar Operacoes</h4>
+<ul>
+<li>Clique em <span class="highlight">"Inserir Categoria Principal"</span></li>
+<li>Selecione um no e clique em <span class="highlight">"Inserir Subcategoria"</span></li>
+<li>Use <span class="highlight">"Renomear"</span> para alterar nomes</li>
+<li>Teste <span class="highlight">"Remover"</span> com confirmacao</li>
+</ul>
+</div>
+<div class="card animate d4">
+<div class="stat-number">03</div>
+<h4 style="margin-top:8px">📊 Verificar Resultados</h4>
+<ul>
+<li>Observe a arvore sendo atualizada</li>
+<li>Veja os detalhes no painel direito</li>
+<li>Confira as estatisticas na barra inferior</li>
+<li>Exporte para JSON e abra o arquivo</li>
+</ul>
+</div>
+</div>
+<div class="code-block animate d5" style="text-align:center;max-height:none;font-size:clamp(.6rem,.78vw,.75rem)">
+<span style="color:#4fc3f7">📋 Roteiro da Apresentacao:</span>
+
+<span style="color:#546e7a">1.</span> Mostrar a interface com exemplos carregados
+<span style="color:#546e7a">2.</span> Inserir uma nova categoria principal (ex: "Esportes")
+<span style="color:#546e7a">3.</span> Inserir subcategoria em "Esportes" (ex: "Futebol", "Basquete")
+<span style="color:#546e7a">4.</span> Renomear "Futebol" para "Futebol Society"
+<span style="color:#546e7a">5.</span> Remover uma categoria e mostrar confirmacao
+<span style="color:#546e7a">6.</span> Buscar por "Notebooks" e ver selecao automatica
+<span style="color:#546e7a">7.</span> Exportar JSON e abrir o arquivo gerado
+</div>
+</div>
+<div class="slide-number">7 / 8</div>
+</div>
+
+<!-- SLIDE 8: CONCLUSAO -->
+<div class="slide slide-8" data-index="7">
+<div class="slide-content">
+<div class="animate d1" style="font-size:clamp(2rem,4vw,3em);margin-bottom:12px">🎯</div>
+<h2 class="animate d2">Conclusao</h2>
+<p class="subtitle animate d3">O que aprendemos e construimos</p>
+<div class="grid-3">
+<div class="card animate d3">
+<h4>📚 Conceitos</h4>
+<ul>
+<li>Estrutura de <span class="highlight">arvore n-aria</span></li>
+<li>Recursao em insercao/busca/remocao</li>
+<li>Percurso pre-ordem na arvore</li>
+<li>Encapsulamento e orientacao a objetos</li>
+</ul>
+</div>
+<div class="card animate d4">
+<h4>💻 Tecnologias</h4>
+<ul>
+<li><span class="highlight">Java</span> — Linguagem principal</li>
+<li><span class="highlight">Java Swing</span> — Interface grafica</li>
+<li><span class="highlight">JTree</span> — Componente de arvore</li>
+<li><span class="highlight">NetBeans</span> — IDE de desenvolvimento</li>
+</ul>
+</div>
+<div class="card animate d5">
+<h4>✅ Resultados</h4>
+<ul>
+<li>Aplicacao funcional e intuitiva</li>
+<li>Codigo organizado e comentado</li>
+<li>Validacao de dados (duplicatas)</li>
+<li>Exportacao para formato JSON</li>
+</ul>
+</div>
+</div>
+<div class="quote-box animate d5">
+<p>"Uma arvore n-aria e a estrutura ideal para representar hierarquias com profundidade variavel no mundo real."</p>
+</div>
+<p class="animate d5" style="margin-top:clamp(16px,2.5vh,28px);color:rgba(255,255,255,.35);font-size:.85em">
+📅 Apresentacao: 13 de julho de 2026
+</p>
+</div>
+<div class="slide-number">8 / 8</div>
+</div>
+
+</div>
+
+<!-- NAVEGACAO -->
+<div class="nav-bar">
+<button class="nav-btn" id="prevBtn" onclick="prevSlide()">← Anterior</button>
+<div class="nav-dots" id="navDots"></div>
+<button class="nav-btn" id="nextBtn" onclick="nextSlide()">Proximo →</button>
+</div>
+
+<p class="key-hint">Use as setas do teclado ← → para navegar</p>
+
+<script>
+let currentSlide = 0;
+const slides = document.querySelectorAll('.slide');
+const totalSlides = slides.length;
+const dotsContainer = document.getElementById('navDots');
+
+for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.onclick = () => goToSlide(i);
+    dotsContainer.appendChild(dot);
+}
+
+function goToSlide(index) {
+    if (index < 0 || index >= totalSlides) return;
+    slides.forEach((slide, i) => {
+        slide.classList.remove('active', 'exit-left');
+        if (i < index) slide.classList.add('exit-left');
+    });
+    slides[index].classList.add('active');
+    currentSlide = index;
+    document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+        dot.classList.toggle('active', i === index);
+    });
+    document.getElementById('prevBtn').disabled = index === 0;
+    document.getElementById('nextBtn').disabled = index === totalSlides - 1;
+    document.getElementById('progressBar').style.width = ((index + 1) / totalSlides * 100) + '%';
+}
+
+function nextSlide() { if (currentSlide < totalSlides - 1) goToSlide(currentSlide + 1); }
+function prevSlide() { if (currentSlide > 0) goToSlide(currentSlide - 1); }
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+});
+
+goToSlide(0);
+</script>
+
+</body>
+</html>
