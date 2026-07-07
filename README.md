@@ -54,16 +54,19 @@ O projeto foi desenvolvido para a disciplina de **Estrutura de Dados** e demonst
 ## 🧱 Estrutura do Projeto
 
 ```
-projeto1/
+📁 Est/
 ├── src/
 │   └── gerenciadorcategorias/
 │       ├── Categoria.java          # Nó da árvore (nome + subcategorias)
 │       ├── ArvoreCategorias.java   # Gerencia a árvore (inserção, busca, remoção)
 │       └── TelaPrincipal.java      # Interface gráfica Java Swing
+├── docs/
+│   └── apresentacao.html           # Slides da apresentação
 ├── nbproject/                       # Configuração do NetBeans
 ├── build/                           # Classes compiladas
-├── apresentacao.html                # Slides da apresentação
-└── README.md                        # Documentação
+├── gerenciadorDeCategorias.java    # Versão console (CLI)
+├── README.md                        # Documentação principal
+└── .gitignore                       # Arquivos ignorados pelo Git
 ```
 
 ---
@@ -116,22 +119,30 @@ Smartph. Not. Tab. Masc. Fem. Inf.
 git clone https://github.com/JadsonAlv3s/PROJETO---RVORES.git
 
 # 2. Abra o NetBeans
-# 3. File → Open Project → Selecione a pasta 'projeto1'
+# 3. File → Open Project → Selecione a pasta raiz do projeto
 # 4. Clique com botão direito no projeto → Run (ou F6)
 ```
 
-### Opção 2: Terminal
+### Opção 2: Terminal — Interface Gráfica (Swing)
 
 ```bash
 # Clone o repositório
 git clone https://github.com/JadsonAlv3s/PROJETO---RVORES.git
-cd PROJETO---RVORES/projeto1
+cd PROJETO---RVORES
 
 # Compilar
 javac -encoding UTF-8 -d build/classes src/gerenciadorcategorias/*.java
 
-# Executar
+# Executar (Interface Gráfica)
 java -cp build/classes gerenciadorcategorias.TelaPrincipal
+```
+
+### Opção 3: Terminal — Versão Console (CLI)
+
+```bash
+# Compilar e executar a versão de console
+javac -encoding UTF-8 gerenciadorDeCategorias.java
+java GerenciadorDeCategorias
 ```
 
 ---
