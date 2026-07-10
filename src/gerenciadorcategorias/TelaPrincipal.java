@@ -24,7 +24,8 @@ public class TelaPrincipal extends JFrame {
     private JTextField txtBusca;
     private JPanel painelDetalhes;
 
-    // Cores do tema - todas sólidas, sem alpha para evitar renderização borrada
+    // Cores do tema — todas sólidas (sem canal alpha), pois componentes Swing
+    // opacos com cores translúcidas geram artefatos de renderização
     private static final Color COR_PRIMARIA = new Color(41, 128, 185);
     private static final Color COR_PRIMARIA_HOVER = new Color(33, 107, 155);
     private static final Color COR_FUNDO = new Color(245, 247, 250);
@@ -107,6 +108,7 @@ public class TelaPrincipal extends JFrame {
         txtBusca.setBackground(Color.WHITE);
         txtBusca.setForeground(COR_TEXTO);
         txtBusca.setOpaque(true);
+        txtBusca.setToolTipText("Buscar categoria pelo nome (atalho: Ctrl+F)");
 
         JButton btnBuscar = new JButton("Buscar");
         btnBuscar.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -146,11 +148,26 @@ public class TelaPrincipal extends JFrame {
                 BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
 
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+
         JLabel header = new JLabel("Estrutura de Categorias");
         header.setFont(new Font("Segoe UI", Font.BOLD, 15));
         header.setForeground(COR_TEXTO);
-        header.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-        panel.add(header, BorderLayout.NORTH);
+        headerPanel.add(header, BorderLayout.WEST);
+
+        JPanel botoesArvore = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+        botoesArvore.setOpaque(false);
+        JButton btnExpandir = criarBotaoMini("Expandir tudo");
+        btnExpandir.addActionListener(e -> expandirTodos(tree));
+        JButton btnRecolher = criarBotaoMini("Recolher tudo");
+        btnRecolher.addActionListener(e -> recolherTodos());
+        botoesArvore.add(btnExpandir);
+        botoesArvore.add(btnRecolher);
+        headerPanel.add(botoesArvore, BorderLayout.EAST);
+
+        panel.add(headerPanel, BorderLayout.NORTH);
 
         rootNode = new DefaultMutableTreeNode("Loja");
         treeModel = new DefaultTreeModel(rootNode);
@@ -162,28 +179,15 @@ public class TelaPrincipal extends JFrame {
         tree.setShowsRootHandles(true);
         tree.setRootVisible(true);
 
-        // Renderer personalizado com ícones
-        tree.setCellRenderer(new DefaultTreeCellRenderer() {
-            @Override
-            public Component getTreeCellRendererComponent(JTree tree, Object value,
-                    boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-                super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-                setFont(new Font("Segoe UI", Font.PLAIN, 13));
-                
-                String texto = value.toString();
-                if (texto.equals("Loja")) {
-                    setText("Loja");
-                }
-                
-                if (sel) {
-                    setBackground(new Color(41, 128, 185, 30));
-                    setBorder(BorderFactory.createLineBorder(new Color(41, 128, 185, 60), 1));
-                } else {
-                    setBorder(null);
-                }
-                return this;
-            }
-        });
+        // Renderer personalizado — cores sólidas de seleção (alpha causa artefatos)
+        DefaultTreeCellRenderer renderer = new DefaultTreeCellRenderer();
+        renderer.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        renderer.setBackgroundSelectionColor(COR_BOTAO_CLICK);
+        renderer.setTextSelectionColor(COR_TEXTO);
+        renderer.setBorderSelectionColor(COR_PRIMARIA);
+        renderer.setBackgroundNonSelectionColor(COR_CARD);
+        renderer.setTextNonSelectionColor(COR_TEXTO);
+        tree.setCellRenderer(renderer);
 
         tree.addTreeSelectionListener(e -> {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
@@ -212,12 +216,73 @@ public class TelaPrincipal extends JFrame {
             }
         });
 
+        configurarAtalhosTeclado();
+
         JScrollPane scroll = new JScrollPane(tree);
         scroll.setBorder(null);
         scroll.setBackground(COR_CARD);
         panel.add(scroll, BorderLayout.CENTER);
 
         return panel;
+    }
+
+    /**
+     * Atalhos de teclado: Delete remove, F2 renomeia, Insert adiciona
+     * subcategoria no nó selecionado e Ctrl+F foca o campo de busca.
+     */
+    private void configurarAtalhosTeclado() {
+        InputMap im = tree.getInputMap(JComponent.WHEN_FOCUSED);
+        ActionMap am = tree.getActionMap();
+
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "remover");
+        am.put("remover", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                removerCategoria();
+            }
+        });
+
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "renomear");
+        am.put("renomear", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                renomearCategoria();
+            }
+        });
+
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0), "inserirSub");
+        am.put("inserirSub", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                inserirSubcategoria();
+            }
+        });
+
+        JRootPane root = getRootPane();
+        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK), "focarBusca");
+        root.getActionMap().put("focarBusca", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                txtBusca.requestFocusInWindow();
+                txtBusca.selectAll();
+            }
+        });
+    }
+
+    private JButton criarBotaoMini(String texto) {
+        JButton btn = new JButton(texto);
+        btn.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        btn.setForeground(COR_TEXTO_CLARO);
+        btn.setBackground(COR_CARD);
+        btn.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(COR_BORDA, 1, true),
+                BorderFactory.createEmptyBorder(4, 10, 4, 10)
+        ));
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setOpaque(true);
+        return btn;
     }
 
     private JPanel criarPainelDireito() {
@@ -263,14 +328,14 @@ public class TelaPrincipal extends JFrame {
 
         // Botão 3: Renomear Categoria
         JButton btnRenomear = criarBotaoAcao("Renomear Categoria",
-                "Alterar o nome de uma categoria existente");
+                "Alterar o nome de uma categoria existente (atalho: F2)");
         btnRenomear.addActionListener(e -> renomearCategoria());
         gbc.gridy = 3;
         acoesPanel.add(btnRenomear, gbc);
 
         // Botão 4: Remover Categoria
         JButton btnRemover = criarBotaoAcao("Remover Categoria",
-                "Excluir uma categoria e todas as suas subcategorias");
+                "Excluir uma categoria e todas as suas subcategorias (atalho: Delete)");
         btnRemover.addActionListener(e -> removerCategoria());
         gbc.gridy = 4;
         acoesPanel.add(btnRemover, gbc);
@@ -419,7 +484,7 @@ public class TelaPrincipal extends JFrame {
         if (node == null) return;
 
         String nome = node.getUserObject().toString();
-        boolean isRaiz = nome.equals("Loja");
+        boolean isRaiz = arvore.isRaiz(nome);
 
         JPopupMenu menu = new JPopupMenu();
         menu.setFont(new Font("Segoe UI", Font.PLAIN, 13));
@@ -552,6 +617,13 @@ public class TelaPrincipal extends JFrame {
         }
     }
 
+    private void recolherTodos() {
+        // De baixo para cima para recolher os níveis internos antes dos externos
+        for (int i = tree.getRowCount() - 1; i > 0; i--) {
+            tree.collapseRow(i);
+        }
+    }
+
     private void carregarExemplos() {
         arvore.carregarExemplos();
         atualizarArvore();
@@ -664,9 +736,9 @@ public class TelaPrincipal extends JFrame {
         }
 
         String nomeAntigo = node.getUserObject().toString();
-        if (nomeAntigo.equals("Loja")) {
+        if (arvore.isRaiz(nomeAntigo)) {
             JOptionPane.showMessageDialog(this,
-                    "Não é possível renomear a raiz \"Loja\".",
+                    "Não é possível renomear a raiz \"" + arvore.getRaiz().getNome() + "\".",
                     "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -711,9 +783,9 @@ public class TelaPrincipal extends JFrame {
         }
 
         String nome = node.getUserObject().toString();
-        if (nome.equals("Loja")) {
+        if (arvore.isRaiz(nome)) {
             JOptionPane.showMessageDialog(this,
-                    "Não é possível remover a raiz \"Loja\".",
+                    "Não é possível remover a raiz \"" + arvore.getRaiz().getNome() + "\".",
                     "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -846,7 +918,7 @@ public class TelaPrincipal extends JFrame {
                 JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            arvore.getRaiz().getSubcategorias().clear();
+            arvore.limpar();
             carregarExemplos();
         }
     }

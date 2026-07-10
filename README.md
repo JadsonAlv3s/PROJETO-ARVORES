@@ -45,9 +45,11 @@ O projeto foi desenvolvido para a disciplina de **Estrutura de Dados** e demonst
 | 📥 **Inserir Subcategoria** | Adiciona uma subcategoria dentro de uma categoria existente |
 | ✏️ **Renomear Categoria** | Altera o nome de uma categoria |
 | 🗑️ **Remover Categoria** | Exclui uma categoria e todas as suas subcategorias |
-| 🔍 **Buscar por Nome** | Localiza uma categoria em toda a árvore |
-| 📋 **Exportar JSON** | Exporta a estrutura completa para arquivo JSON |
+| 🔍 **Buscar por Nome** | Localiza uma categoria em toda a árvore (`Ctrl+F`) |
+| 📋 **Exportar JSON** | Exporta a estrutura completa para arquivo JSON (com escape de caracteres) |
 | 📊 **Detalhes** | Exibe informações detalhadas da categoria selecionada |
+| ⌨️ **Atalhos de Teclado** | `Delete` remove, `F2` renomeia, `Insert` adiciona subcategoria |
+| 🌲 **Expandir/Recolher** | Botões para expandir ou recolher toda a árvore de uma vez |
 
 ---
 
@@ -65,6 +67,8 @@ O projeto foi desenvolvido para a disciplina de **Estrutura de Dados** e demonst
 ├── nbproject/                       # Configuração do NetBeans
 ├── build/                           # Classes compiladas
 ├── gerenciadorDeCategorias.java    # Versão console (CLI)
+├── vercel.json                      # Deploy da apresentação (Vercel)
+├── LICENSE                          # Licença MIT
 ├── README.md                        # Documentação principal
 └── .gitignore                       # Arquivos ignorados pelo Git
 ```
@@ -116,7 +120,7 @@ Smartph. Not. Tab. Masc. Fem. Inf.
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/JadsonAlv3s/PROJETO---RVORES.git
+git clone https://github.com/JadsonAlv3s/PROJETO-ARVORES.git
 
 # 2. Abra o NetBeans
 # 3. File → Open Project → Selecione a pasta raiz do projeto
@@ -127,8 +131,8 @@ git clone https://github.com/JadsonAlv3s/PROJETO---RVORES.git
 
 ```bash
 # Clone o repositório
-git clone https://github.com/JadsonAlv3s/PROJETO---RVORES.git
-cd PROJETO---RVORES
+git clone https://github.com/JadsonAlv3s/PROJETO-ARVORES.git
+cd PROJETO-ARVORES
 
 # Compilar
 javac -encoding UTF-8 -d build/classes src/gerenciadorcategorias/*.java

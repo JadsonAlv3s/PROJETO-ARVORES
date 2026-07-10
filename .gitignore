@@ -27,3 +27,6 @@ Thumbs.db
 # Temp
 tmp/
 temp/
+
+# Clone antigo do próprio repositório (não versionar)
+PROJETO-ARVORES/

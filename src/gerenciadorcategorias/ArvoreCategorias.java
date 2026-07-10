@@ -19,14 +19,24 @@ public class ArvoreCategorias {
     }
 
     /**
+     * Verifica se o nome informado corresponde à raiz da árvore.
+     */
+    public boolean isRaiz(String nome) {
+        return nome != null && raiz.getNome().equalsIgnoreCase(nome.trim());
+    }
+
+    private boolean nomeInvalido(String nome) {
+        return nome == null || nome.trim().isEmpty();
+    }
+
+    /**
      * Insere uma nova categoria como filha direta da raiz.
      */
     public boolean inserirCategoriaPrincipal(String nome) {
-        if (raiz.buscarPorNome(nome) != null) {
-            return false; // já existe
+        if (nomeInvalido(nome) || raiz.buscarPorNome(nome.trim()) != null) {
+            return false; // nome inválido ou já existe
         }
-        Categoria nova = new Categoria(nome);
-        raiz.inserirSubcategoria(nova);
+        raiz.inserirSubcategoria(new Categoria(nome.trim()));
         return true;
     }
 
@@ -34,13 +44,12 @@ public class ArvoreCategorias {
      * Insere uma subcategoria dentro de uma categoria existente.
      */
     public boolean inserirSubcategoria(String nomeCategoriaPai, String nomeSubcategoria) {
-        if (raiz.buscarPorNome(nomeSubcategoria) != null) {
-            return false; // já existe
+        if (nomeInvalido(nomeSubcategoria) || raiz.buscarPorNome(nomeSubcategoria.trim()) != null) {
+            return false; // nome inválido ou já existe
         }
         Categoria pai = raiz.buscarPorNome(nomeCategoriaPai);
         if (pai != null) {
-            Categoria nova = new Categoria(nomeSubcategoria);
-            pai.inserirSubcategoria(nova);
+            pai.inserirSubcategoria(new Categoria(nomeSubcategoria.trim()));
             return true;
         }
         return false;
@@ -60,15 +69,22 @@ public class ArvoreCategorias {
      * Renomeia uma categoria existente.
      */
     public boolean renomearCategoria(String nomeAntigo, String nomeNovo) {
-        if (raiz.buscarPorNome(nomeNovo) != null) {
-            return false; // nome novo já existe
+        if (nomeInvalido(nomeNovo) || raiz.buscarPorNome(nomeNovo.trim()) != null) {
+            return false; // nome inválido ou já existe
         }
         Categoria cat = raiz.buscarPorNome(nomeAntigo);
         if (cat != null) {
-            cat.setNome(nomeNovo);
+            cat.setNome(nomeNovo.trim());
             return true;
         }
         return false;
+    }
+
+    /**
+     * Remove todas as categorias, mantendo apenas a raiz.
+     */
+    public void limpar() {
+        raiz.removerTodasSubcategorias();
     }
 
     /**
@@ -109,7 +125,7 @@ public class ArvoreCategorias {
     }
 
     private void listarRecursivo(Categoria cat, List<String> lista) {
-        if (!cat.getNome().equals("Loja")) {
+        if (cat != raiz) {
             lista.add(cat.getNome());
         }
         for (Categoria sub : cat.getSubcategorias()) {

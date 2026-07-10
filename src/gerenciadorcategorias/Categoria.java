@@ -1,6 +1,7 @@
 package gerenciadorcategorias;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -24,8 +25,12 @@ public class Categoria {
         this.nome = nome;
     }
 
+    /**
+     * Retorna uma visão somente-leitura das subcategorias.
+     * Modificações na árvore devem passar pelos métodos de inserção/remoção.
+     */
     public List<Categoria> getSubcategorias() {
-        return subcategorias;
+        return Collections.unmodifiableList(subcategorias);
     }
 
     /**
@@ -33,6 +38,13 @@ public class Categoria {
      */
     public void inserirSubcategoria(Categoria subcategoria) {
         this.subcategorias.add(subcategoria);
+    }
+
+    /**
+     * Remove todas as subcategorias deste nó.
+     */
+    public void removerTodasSubcategorias() {
+        this.subcategorias.clear();
     }
 
     /**
