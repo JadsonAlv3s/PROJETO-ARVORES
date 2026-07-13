@@ -10,6 +10,23 @@
 
 ---
 
+## 🎓 Identificação Acadêmica
+
+| | |
+|---|---|
+| **Instituição** | IFRN – Campus Parnamirim |
+| **Disciplina** | Estrutura de Dados |
+| **Professor** | Givanaldo Rocha |
+| **Repositório** | https://github.com/JadsonAlv3s/PROJETO-ARVORES |
+
+**Alunos:**
+
+- Jadson Alves
+- João Vitor
+- Laercio Fernandes
+
+---
+
 ## 📋 Índice
 
 - [Sobre](#-sobre)
